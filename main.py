@@ -14,15 +14,14 @@ def callBack(topic, msg):
         fan.value(0)
     else:
         fan.value(1)
-        print('Sintax Error_00')
 
 
 # Replace these with your own Wi-Fi and MQTT broker settings
-SSID = 'int-ms'
-password = 'ConectatePuto-721'
-serverAddr = "3.138.178.240"
+SSID = 'Totalplay-EEA7'
+password = 'EEA7506Es9Jd3Tbj'
+serverAddr = "3.133.119.117"
 serverPort = 1883
-clientName = 'Bug_00'
+clientName = 'Bug_01'
 pubTopic = clientName + '/Report'
 subTopic = clientName + '/Execute'
 
@@ -33,27 +32,27 @@ sta_if.active(True)
 sta_if.connect(SSID, password)
 while not sta_if.isconnected():
     pass
-print('Connected to ' + SSID)
 
 # Initialize MQTT client
 mqtt_client = mqtt.MQTTClient(clientName, serverAddr, serverPort)
 mqtt_client.connect()
-print('Connected to Broker at ' + serverAddr)
 
 mqtt_client.set_callback(callBack)
 mqtt_client.subscribe(subTopic)
 
 sensor = dht.DHT11(machine.Pin(14, machine.Pin.IN, machine.Pin.PULL_UP))
+sensor.
 
 while True:
-    
-    
-    mqtt_client.check_msg()
+
     try:
         sensor.measure()
     
     except:
-        print('Failed attempt')
+        pass
+    
+    mqtt_client.check_msg()
+    
      
     # Create a JSON payload
     payload = {
@@ -62,6 +61,5 @@ while True:
     }
     # Publish the JSON payload to MQTT
     mqtt_client.publish(pubTopic, json.dumps(payload))
-    print('\nData sent\n')
 
     time.sleep(4)
