@@ -7,6 +7,23 @@ import json
 
 #Se declara la clase
 class MyGUI:
+    def light(self, event):
+        if self.actuatorState[0] == 'OFF':
+            self.mqttClient.publish('Host/Execute', "light: ON")
+        elif self.actuatorState[0] == 'ON':
+            self.mqttClient.publish('Host/Execute', "light: OFF")
+
+    def temp(self, event):
+        if self.actuatorState[1] == 'OFF':
+            self.mqttClient.publish('Host/Execute', "temp: ON")
+        elif self.actuatorState[1] == 'ON':
+            self.mqttClient.publish('Host/Execute', "temp: OFF")
+
+    def hmdr(self, event):
+        if self.actuatorState[2] == 'OFF':
+            self.mqttClient.publish('Host/Execute', "hmdr: ON")
+        elif self.actuatorState[2] == 'ON':
+            self.mqttClient.publish('Host/Execute', "hmdr: OFF")
 
     #Funcion vinculada al evento de nuevo mensaje en topico suscrito
     def on_message(self, mqttClient, userdata, msg):        
@@ -18,6 +35,35 @@ class MyGUI:
                 self.sensorData1.pop(-1)
             self.updateData(self.humListbox_1, self.tempListbox_1, self.sensorData1)
         elif msg.topic == 'Bug_01/Report':
+            self.sensorData2.insert(0, msg.payload.decode("utf-8"))
+            if len(self.sensorData2) > 10:
+                self.sensorData2.pop(-1)
+            self.updateData(self.humListbox_2, self.tempListbox_2, self.sensorData2)
+        elif msg.topic == 'Host/Report':
+
+            dat = json.dumps(msg).replace('{', '').replace('}', '').replace('"', '').replace(' ', '').replace('\\', '').split(",")
+            for i in range(len(dat)):
+                if dat[i].split(":")[1] == "light":
+                    if str(dat[i].split(":")[-1]) == "OFF":
+                        self.ledStatus['fill'] = 'gray35'
+                    elif str(dat[i].split(":")[-1]) == "ON":
+                         self.ledStatus['fill'] = 'green'
+
+                elif dat[i].split(":")[1] == "temp":
+                    if str(dat[i].split(":")[-1]) == "OFF":
+                        self.tempStatus['fill'] = 'gray35'
+                    elif str(dat[i].split(":")[-1]) == "ON":
+                         self.tempStatus['fill'] = 'green'
+
+                elif dat[i].split(":")[1] == "hmdr":
+                    if str(dat[i].split(":")[-1]) == "OFF":
+                        self.humStatus['fill'] = 'gray35'
+                    elif str(dat[i].split(":")[-1]) == "ON":
+                         self.humStatus['fill'] = 'green'
+
+                    
+
+
             self.sensorData2.insert(0, msg.payload.decode("utf-8"))
             if len(self.sensorData2) > 10:
                 self.sensorData2.pop(-1)
@@ -83,7 +129,7 @@ class MyGUI:
 
         #Creacion del objeto del cliente MQTT
         self.mqttClient = mqtt.Client()
-        self.mqttClient.connect("3.133.119.117", 8080, 60)
+        self.mqttClient.connect("192.168.10.102", 1883, 60)
         self.mqttClient.subscribe("Bug_00/Report")
         self.mqttClient.subscribe("Bug_01/Report")
         self.mqttClient.on_message = self.on_message
@@ -94,6 +140,7 @@ class MyGUI:
         self.sensorData2 = []
         self.currentAvg = []
         self.currentParamText = "Awaitng data"
+        self.actuatorState = ["OFF", "OFF", "OFF"]
             
 
         #Valores del tamaño de pantalla y divisiones para las secciones internas
@@ -169,6 +216,7 @@ class MyGUI:
         humIndicator = tk.Canvas(module1Panel, width=25, height=25, bg="lightgray", highlightthickness=0)
         humIndicator.grid(row=3, column=1, padx=5, pady=5, sticky='W')
         self.humStatus = humIndicator.create_oval(3, 3, 25, 25, fill="gray35")
+        humIndicator.tag_bind(self.humStatus, '<Button-1>', self.hmdr)
 
 
         
@@ -193,12 +241,14 @@ class MyGUI:
         ledIndicator = tk.Canvas(module2Panel, width=25, height=25, bg="lightgray", highlightthickness=0)
         ledIndicator.grid(row=2, column=1, padx=5, pady=(65, 30), sticky='W')
         self.ledStatus = ledIndicator.create_oval(0, 0, 25, 25, fill="gray35")
+        ledIndicator.tag_bind(self.ledStatus, '<Button-1>', self.light)
 
         tk.Label(module2Panel, text="Air Conditioner: ", bg="lightgray").grid(row=3, column=0, sticky='E')
 
-        peltIndicator = tk.Canvas(module2Panel, width=25, height=25, bg="lightgray", highlightthickness=0)
-        peltIndicator.grid(row=3, column=1, padx=5, pady=5, sticky='W')
-        self.peltStatus = peltIndicator.create_oval(0, 0, 25, 25, fill="gray35")
+        tempIndicator = tk.Canvas(module2Panel, width=25, height=25, bg="lightgray", highlightthickness=0)
+        tempIndicator.grid(row=3, column=1, padx=5, pady=5, sticky='W')
+        self.tempStatus = tempIndicator.create_oval(0, 0, 25, 25, fill="gray35")
+        tempIndicator.tag_bind(self.tempStatus, '<Button-1>', self.temp)
 
 if __name__ == "__main__":
 
@@ -241,4 +291,3 @@ if __name__ == "__main__":
     #Crea instancia de la clase y asigna el objeto a la variable gui
     gui = MyGUI(root)
     root.mainloop()
-    
