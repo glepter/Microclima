@@ -12,25 +12,23 @@ def callBack(topic, msg):
     for i in range(len(actuators)):
         if dat[i].split(":")[1] == "light":
             if str(dat[i].split(":")[-1]) == "OFF":
-                actuators[i].value(1)
+                actuators[i].value(0)
                 currentState[dat[i].split(":")[-1]] =  "OFF"
             elif str(dat[i].split(":")[-1]) == "ON":
-                actuators[i].value(0)
+                actuators[i].value(1)
                 currentState[dat[i].split(":")[-1]] =  "ON"
         if dat[i].split(":")[1] == "temp":
             if str(dat[i].split(":")[-1]) == "OFF":
-                actuators[i].value(1)
+                actuators[i].value(0)
                 currentState[dat[i].split(":")[-1]] =  "OFF"
             elif str(dat[i].split(":")[-1]) == "ON":
-                actuators[i].value(0)
+                actuators[i].value(1)
                 currentState[dat[i].split(":")[-1]] =  "ON"
         if dat[i].split(":")[1] == "hmdr":
             if str(dat[i].split(":")[-1]) == currentState['hmdr']:
                 pass
             else:
                 if str(dat[i].split(":")[-1]) == "OFF":
-                    actuators[i].value(0)
-                    time.sleep(0.03)
                     actuators[i].value(1)
                     time.sleep(0.03)
                     actuators[i].value(0)
@@ -40,12 +38,14 @@ def callBack(topic, msg):
                     actuators[i].value(0)
                     time.sleep(0.03)
                     actuators[i].value(1)
+                    time.sleep(0.03)
+                    actuators[i].value(0)
                     time.sleep(0.03)                    
                     currentState[dat[i].split(":")[-1]] =  "OFF"
                 elif str(dat[i].split(":")[-1]) == "ON":
-                    actuators[i].value(0)
-                    time.sleep(0.03)
                     actuators[i].value(1)
+                    time.sleep(0.03)
+                    actuators[i].value(0)
                     currentState[dat[i].split(":")[-1]] =  "ON"
     #Publica estado actual de los actuadores
     mqtt_client.publish(pubTopic, json.dumps(str(currentState)))
